@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Deck {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  color       String?  @default("#3B82F6") 
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  cards       Card[]
+  
+  @@map("decks")
+}
+
+enum CardType {
+  DEFINITION      // Concepto → Definición
+  MULTIPLE_CHOICE // Pregunta con opciones A, B, C, D
+  TRUE_FALSE      // Verdadero o Falso
+  FILL_BLANK      // Completar espacios en blanco
+  MATCHING        // Emparejar términos
+  IMAGE_TEXT      // Imagen → Texto
+  CODE_SNIPPET    // Código → Explicación
+}
+
+model Card {
+  id        String   @id @default(cuid())
+  type      CardType @default(DEFINITION)
+  
+  
+  front     String   
+  back      String   
+  imageUrlFront  String?  
+  imageUrlBack  String?  
+  
+  options    String[] // Para multiple choice: ["A", "B", "C", "D"]
+  correct   Int?  // Para multiple choice: [0] o true_false: true
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  deckId    String
+  deck      Deck     @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  
+  timesReviewed Int @default(0)
+  timesCorrect  Int @default(0)
+  lastReviewed  DateTime?
+  difficulty    Int @default(1) // 1-5
+  
+  @@map("cards")
+}
+
